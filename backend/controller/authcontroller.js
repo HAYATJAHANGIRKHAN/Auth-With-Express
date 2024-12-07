@@ -1,4 +1,4 @@
-const userModel = require('../models/userSchema');
+const userModel = require('../Models/userSchema');
 const emailValidator =require('email-Validator');
 
 const signup = async (req, res, next) => {
@@ -59,7 +59,9 @@ return res.status(400).json({success: false,
   message:"every field is mandatory"
 })
  }
- const user = await userModel
+
+ try{
+  const user = await userModel
   .findOne({email})
   .select('+password');
 
@@ -71,6 +73,35 @@ return res.status(400).json({success: false,
     })
 
   }
+
+  const token = user.jwtToken();
+  user.password = token.password;
+
+  const  cookieOption= {
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly : true,
+  };
+  res.cookie("token", token,cookieOption);
+  res.status(200).json({
+    success: true,
+    data: user,
+  })
+
+ }catch(e){
+ res.status(400).json({
+success: false,
+message: e.message
+ });
+
+ }
+
+
+
+
+
+
+
+ 
 }
 
 module.exports = {
