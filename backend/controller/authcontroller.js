@@ -1,3 +1,6 @@
+const userModel = require('../models/userSchema');
+const emailValidator =require('email-Validator');
+
 const signup = async (req, res, next) => {
   const { name, email, password, confirmPassword } = req.body;
   console.log(name, email, password, confirmPassword);
@@ -5,6 +8,21 @@ const signup = async (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'All fields are required',
+    });
+  }
+
+  const validEmail = emailValidator.validate(email);
+  if(!validEmail) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid email format',
+    })
+  }
+
+  if(password!==confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'Passwords do not match',
     });
   }
 
@@ -33,6 +51,29 @@ const signup = async (req, res, next) => {
 
 }
 
+const signin= async(req,res) =>{
+ const {email, password} = req.body;
+
+ if(!email || !password){
+return res.status(400).json({success: false, 
+  message:"every field is mandatory"
+})
+ }
+ const user = await userModel
+  .findOne({email})
+  .select('+password');
+
+  if(!user || user.password !== password){
+
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid email or password', 
+    })
+
+  }
+}
+
 module.exports = {
-  signup
+  signup,
+  signin
 }
